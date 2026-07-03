@@ -2,7 +2,11 @@ package com.mcqueide.awstest.interfaces.web;
 
 import java.util.List;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -22,4 +26,26 @@ public class S3Controller {
     public List<String> listBuckets() {
         return s3Service.listBuckets();
     }
+
+    @GetMapping("/buckets/{bucketName}/objects")
+    public List<String> getBucketObjects(@PathVariable String bucketName) {
+        return s3Service.getBucketObjects(bucketName);
+    }
+
+    @GetMapping("/buckets/{bucketName}/objects/{objectKey}/content")
+    public byte[] getFileContent(@PathVariable String bucketName, @PathVariable String objectKey) {
+        return s3Service.getFileContent(bucketName, objectKey);
+    }
+
+    @PostMapping("/buckets/{bucketName}/objects/{objectKey}/content")
+    public void uploadFile(@PathVariable String bucketName, @PathVariable String objectKey, 
+            @RequestBody byte[] content) {
+        s3Service.uploadFile(bucketName, objectKey, content);
+    }
+
+    @DeleteMapping("/buckets/{bucketName}/objects/{objectKey}")
+    public void deleteObject(@PathVariable String bucketName, @PathVariable String objectKey) {
+        s3Service.deleteObject(bucketName, objectKey);
+    }
+
 }
