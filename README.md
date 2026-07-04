@@ -1,11 +1,15 @@
 # Configure EC2 machine
 
 ec2: my-ec2
+
 key-pair: my-ec2-keypair
+
 sg: my-sg
 
-ssh client: 
+## ssh client
+
 chmod 400 "my-ec2-keypair.pem"
+
 ssh -i "my-ec2-keypair.pem" ec2-user@ec2-instance-dns
 
 ## EC2 User data
