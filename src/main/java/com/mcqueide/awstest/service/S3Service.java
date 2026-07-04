@@ -1,4 +1,4 @@
-package com.mcqueide.awstest.application.service;
+package com.mcqueide.awstest.service;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package com.mcqueide.awstest.interfaces.web;
+package com.mcqueide.awstest.rest;
 
 import java.util.List;
 
@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.mcqueide.awstest.application.service.S3Service;
+import com.mcqueide.awstest.service.S3Service;
 
 @RestController
 @RequestMapping("/api/v1/s3")
