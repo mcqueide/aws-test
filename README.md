@@ -59,3 +59,35 @@ aws login --profile {profileName}
 export AWS_PROFILE={profileName}
 export AWS_REGION=us-east-1
 ```
+
+## Create a Role Policy
+
+```
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ListAllBuckets",
+      "Effect": "Allow",
+      "Action": "s3:ListAllMyBuckets",
+      "Resource": "*"
+    },
+    {
+      "Sid": "ListSpecificBucket",
+      "Effect": "Allow",
+      "Action": "s3:ListBucket",
+      "Resource": "arn:aws:s3:::aws-test-bucket-johnm"
+    },
+    {
+      "Sid": "ObjectReadWriteDelete",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": "arn:aws:s3:::aws-test-bucket-johnm/*"
+    }
+  ]
+}
+```
