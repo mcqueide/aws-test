@@ -91,3 +91,93 @@ export AWS_REGION=us-east-1
   ]
 }
 ```
+
+## Build a Docker image
+
+Build the image locally:
+
+```bash
+docker build -t aws-test .
+```
+
+Run it locally:
+
+```bash
+docker run --rm -p 8080:8080 \
+  -e AWS_REGION=us-east-1 \
+  -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/people \
+  -e SPRING_DATASOURCE_USERNAME=postgres \
+  -e SPRING_DATASOURCE_PASSWORD=people123 \
+  aws-test
+```
+
+If you are testing against AWS from your machine, use your normal AWS credentials locally. Do not put access keys in the image.
+
+## Push the image to ECR
+
+Create a repository once:
+
+```bash
+aws ecr create-repository --repository-name aws-test
+```
+
+Log in Docker to ECR:
+
+```bash
+aws ecr get-login-password --region us-east-1 \
+  | docker login --username AWS --password-stdin 519400893680.dkr.ecr.us-east-1.amazonaws.com/aws-test
+```
+
+Tag and push:
+
+```bash
+docker tag aws-test:latest <account-id>.dkr.ecr.us-east-1.amazonaws.com/aws-test:latest
+docker push <account-id>.dkr.ecr.us-east-1.amazonaws.com/aws-test:latest
+```
+
+## Run it in ECS
+
+Keep it simple and use ECS Fargate.
+
+1. Create an ECS cluster.
+2. Create a task definition using the ECR image.
+3. Set container port to `8080`.
+4. Add environment variables:
+   - `AWS_REGION=us-east-1`
+   - `SPRING_DATASOURCE_URL=jdbc:postgresql://<rds-endpoint>:5432/people`
+   - `SPRING_DATASOURCE_USERNAME=<db-user>`
+   - `SPRING_DATASOURCE_PASSWORD=<db-password>`
+5. Attach a task role with your S3 permissions.
+6. Attach an execution role with standard ECS permissions so ECS can pull from ECR and write logs to CloudWatch.
+7. Create a security group for the service:
+   - allow outbound internet access if needed
+   - allow outbound access to S3 through NAT or a VPC endpoint
+   - allow outbound access to the RDS port
+8. Update the RDS security group to allow inbound `5432` from the ECS service security group.
+9. Create the ECS service and start one task.
+
+Important notes:
+
+- In ECS, the app should get AWS credentials from the task role automatically.
+- Do not set `AWS_PROFILE` in ECS.
+- Do not bake credentials into the image.
+- If you want a public test endpoint, place the ECS service behind an Application Load Balancer and forward traffic to port `8080`.
+
+## Minimal IAM idea for ECS
+
+Use two roles:
+
+- Execution role: lets ECS pull the image from ECR and send logs to CloudWatch.
+- Task role: lets your application call S3.
+
+Your existing S3 policy can be attached to the task role.
+
+## What to expect when testing
+
+If the app works on EC2 with an instance role, the ECS equivalent is the task role. That is the main concept to verify.
+
+Useful checks:
+
+- Confirm the task starts and stays healthy.
+- Confirm the app can connect to RDS.
+- Confirm S3 calls work without any local profile or access key configuration.
