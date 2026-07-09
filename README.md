@@ -1,4 +1,6 @@
-# Configure EC2 machine
+# Run in EC2
+
+## Configure EC2 machine
 
 ec2: my-ec2
 
@@ -91,6 +93,8 @@ export AWS_REGION=us-east-1
   ]
 }
 ```
+
+# Run in EC2
 
 ## Build a Docker image
 
