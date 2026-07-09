@@ -103,12 +103,7 @@ docker build -t aws-test .
 Run it locally:
 
 ```bash
-docker run --rm -p 8080:8080 \
-  -e AWS_REGION=us-east-1 \
-  -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/people \
-  -e SPRING_DATASOURCE_USERNAME=postgres \
-  -e SPRING_DATASOURCE_PASSWORD=people123 \
-  aws-test
+docker compose up -d
 ```
 
 If you are testing against AWS from your machine, use your normal AWS credentials locally. Do not put access keys in the image.
@@ -125,7 +120,7 @@ Log in Docker to ECR:
 
 ```bash
 aws ecr get-login-password --region us-east-1 \
-  | docker login --username AWS --password-stdin 519400893680.dkr.ecr.us-east-1.amazonaws.com/aws-test
+  | docker login --username AWS --password-stdin <account-id>.dkr.ecr.us-east-1.amazonaws.com/aws-test
 ```
 
 Tag and push:
