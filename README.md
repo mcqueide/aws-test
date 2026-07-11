@@ -359,6 +359,23 @@ kubectl get pods -n aws-test
 ```text
 kubernetes.io/role/elb=1             # public subnets
 kubernetes.io/role/internal-elb=1    # private subnets
+kubernetes.io/cluster/aws-test-eks=shared
+```
+
+Example command to add the cluster tag to subnets in your VPC:
+
+```bash
+aws ec2 create-tags \
+  --resources <subnet-id-1> <subnet-id-2> \
+  --tags Key=kubernetes.io/cluster/aws-test-eks,Value=shared
+```
+
+After tagging, recreate the service so AWS re-evaluates subnet selection:
+
+```bash
+kubectl delete svc aws-test -n aws-test
+kubectl apply -f k8s/aws/app-eks-rds.yaml
+kubectl get svc -n aws-test -w
 ```
 
 ## IAM concept in EKS (simple)
