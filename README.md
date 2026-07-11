@@ -244,6 +244,59 @@ Port-forward app and test:
 kubectl port-forward -n aws-test svc/aws-test 8080:8080
 ```
 
+## Set up EKS for kubectl
+
+Keep the first test simple and use `eksctl` to create the cluster.
+
+Install `eksctl` on Linux:
+
+```bash
+curl --silent --location \
+  "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" \
+  | tar xz -C /tmp
+
+sudo mv /tmp/eksctl /usr/local/bin
+eksctl version
+```
+
+Install the tools you need on your machine:
+
+```bash
+aws --version
+kubectl version --client
+eksctl version
+```
+
+Set your AWS region:
+
+```bash
+export AWS_REGION=us-east-1
+```
+
+Create a simple EKS cluster:
+
+```bash
+eksctl create cluster \
+  --name aws-test-cluster \
+  --region $AWS_REGION \
+  --nodes 2
+```
+
+If your kubeconfig is not updated automatically, update it explicitly:
+
+```bash
+aws eks update-kubeconfig --region $AWS_REGION --name aws-test-cluster
+```
+
+Confirm that `kubectl` is pointing to the EKS cluster:
+
+```bash
+kubectl config current-context
+kubectl get nodes
+```
+
+After that, `kubectl apply` commands will run against your EKS cluster.
+
 ## EKS test (app + RDS)
 
 For EKS, use RDS instead of local PostgreSQL.
