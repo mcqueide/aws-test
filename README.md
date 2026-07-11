@@ -1,3 +1,15 @@
+# Install AWS CLI V2
+
+```
+# inside container (Debian/Ubuntu base)
+apt-get update && apt-get install -y curl unzip
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
+unzip /tmp/awscliv2.zip -d /tmp
+/tmp/aws/install
+
+aws --version
+```
+
 # Run in EC2
 
 ## Configure EC2 machine
@@ -200,10 +212,16 @@ Build your app image:
 docker build -t aws-test:latest .
 ```
 
-If you use minikube, load the image into the cluster runtime:
+If you use Kind, load the image into your Kind cluster runtime:
 
 ```bash
-minikube image load aws-test:latest
+kind load docker-image aws-test:latest
+```
+
+If your cluster name is not `kind`, specify it explicitly:
+
+```bash
+kind load docker-image aws-test:latest --name <your-kind-cluster-name>
 ```
 
 Apply manifests:
