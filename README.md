@@ -308,18 +308,57 @@ For EKS, use RDS instead of local PostgreSQL.
   - `<rds-endpoint>`
   - `<db-user>`
   - `<db-password>`
-3. Apply manifests:
+3. Create and verify the IRSA service account (required for S3 access):
+
+```bash
+eksctl create iamserviceaccount \
+  --cluster aws-test-eks \
+  --region us-east-1 \
+  --namespace aws-test \
+  --name aws-test-sa \
+  --attach-policy-arn arn:aws:iam::519400893680:policy/aws-test-ec2-s3-read-rolePolicy \
+  --override-existing-serviceaccounts \
+  --approve
+
+kubectl apply -f k8s/aws/serviceaccount-irsa.yaml
+kubectl get sa aws-test-sa -n aws-test -o yaml
+```
+
+4. Confirm the service account annotation has a real role ARN in this format:
+
+```text
+eks.amazonaws.com/role-arn: arn:aws:iam::<account-id>:role/<role-name>
+```
+
+5. Apply manifests and restart deployment:
 
 ```bash
 kubectl apply -f k8s/namespace.yaml
 kubectl apply -f k8s/aws/app-eks-rds.yaml
+kubectl rollout restart deployment/aws-test -n aws-test
+kubectl rollout status deployment/aws-test -n aws-test
 ```
 
-4. Check service and external endpoint:
+6. Validate runtime:
+
+```bash
+kubectl get pods -n aws-test
+kubectl logs -n aws-test deploy/aws-test --tail=200
+```
+
+7. If S3 calls fail with AccessDenied, verify IAM policy bucket names match exactly the bucket used by your endpoint (for example `aws-test-bucket-johnm` and `aws-test-bucket-johnm/*`).
+8. Check service and external endpoint:
 
 ```bash
 kubectl get svc -n aws-test
 kubectl get pods -n aws-test
+```
+
+9. If `EXTERNAL-IP` stays `pending`, confirm your EKS VPC subnets are tagged correctly for load balancers:
+
+```text
+kubernetes.io/role/elb=1             # public subnets
+kubernetes.io/role/internal-elb=1    # private subnets
 ```
 
 ## IAM concept in EKS (simple)
