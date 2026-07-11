@@ -180,3 +180,87 @@ Useful checks:
 - Confirm the task starts and stays healthy.
 - Confirm the app can connect to RDS.
 - Confirm S3 calls work without any local profile or access key configuration.
+
+# Run in EKS
+
+## Kubernetes manifests in this project
+
+- `k8s/namespace.yaml`: namespace for the app.
+- `k8s/local/postgres.yaml`: local PostgreSQL deployment and service.
+- `k8s/local/app-local.yaml`: app deployment for local testing using local PostgreSQL.
+- `k8s/aws/app-eks-rds.yaml`: app deployment for EKS using RDS.
+
+## Local Kubernetes test (app + local DB)
+
+This is a simple way to test concepts locally with one app pod and one PostgreSQL pod.
+
+Build your app image:
+
+```bash
+docker build -t aws-test:latest .
+```
+
+If you use minikube, load the image into the cluster runtime:
+
+```bash
+minikube image load aws-test:latest
+```
+
+Apply manifests:
+
+```bash
+kubectl apply -f k8s/namespace.yaml
+kubectl apply -f k8s/local/postgres.yaml
+kubectl apply -f k8s/local/app-local.yaml
+```
+
+Check pods:
+
+```bash
+kubectl get pods -n aws-test
+```
+
+Port-forward app and test:
+
+```bash
+kubectl port-forward -n aws-test svc/aws-test 8080:8080
+```
+
+## EKS test (app + RDS)
+
+For EKS, use RDS instead of local PostgreSQL.
+
+1. Push your image to ECR.
+2. Update placeholders in `k8s/aws/app-eks-rds.yaml`:
+  - `<account-id>`
+  - `<region>`
+  - `<rds-endpoint>`
+  - `<db-user>`
+  - `<db-password>`
+3. Apply manifests:
+
+```bash
+kubectl apply -f k8s/namespace.yaml
+kubectl apply -f k8s/aws/app-eks-rds.yaml
+```
+
+4. Check service and external endpoint:
+
+```bash
+kubectl get svc -n aws-test
+kubectl get pods -n aws-test
+```
+
+## IAM concept in EKS (simple)
+
+For S3 access in EKS, use pod-level IAM (IRSA) so your app gets credentials automatically, similar to ECS task role behavior.
+
+- Keep AWS credentials out of the container image.
+- Do not set AWS profile inside the pod.
+
+## Cleanup
+
+```bash
+kubectl delete namespace aws-test
+```
+

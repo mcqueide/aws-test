@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aws-test
+  namespace: aws-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aws-test
+  template:
+    metadata:
+      labels:
+        app: aws-test
+    spec:
+      containers:
+        - name: aws-test
+          image: <account-id>.dkr.ecr.<region>.amazonaws.com/aws-test:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: AWS_REGION
+              value: <region>
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:postgresql://<rds-endpoint>:5432/people
+            - name: SPRING_DATASOURCE_USERNAME
+              value: <db-user>
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: <db-password>
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aws-test
+  namespace: aws-test
+spec:
+  selector:
+    app: aws-test
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+  type: LoadBalancer
