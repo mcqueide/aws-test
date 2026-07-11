@@ -13,26 +13,29 @@ spec:
       labels:
         app: aws-test
     spec:
+      serviceAccountName: aws-test-sa
       containers:
         - name: aws-test
-          image: <account-id>.dkr.ecr.<region>.amazonaws.com/aws-test:latest
+          image: <account-id>.dkr.ecr.us-east-1.amazonaws.com/aws-test:latest
           ports:
             - containerPort: 8080
           env:
             - name: AWS_REGION
-              value: <region>
+              value: us-east-1
             - name: SPRING_DATASOURCE_URL
               value: jdbc:postgresql://<rds-endpoint>:5432/people
             - name: SPRING_DATASOURCE_USERNAME
               value: <db-user>
             - name: SPRING_DATASOURCE_PASSWORD
-              value: <db-password>
+              value: <rds-password>
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: aws-test
   namespace: aws-test
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
 spec:
   selector:
     app: aws-test
@@ -41,3 +44,4 @@ spec:
       port: 8080
       targetPort: 8080
   type: LoadBalancer
+
